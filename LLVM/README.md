@@ -118,7 +118,7 @@ foreach file (`cat log`)
   cp -rf /home/sdasgup3/speccpu2006/benchspec/CPU2006/$file/* $file/ 
 end
 cd llvm-build/projects/test-suite/External/SPEC/CINT2006
-``
+```
 - edit the following in */Makefile
 ```
 LEVEL = ../../../..
@@ -130,7 +130,7 @@ SPEC_BENCH_DIR = /home/sdasgup3/llvm/llvm-llvmpa/llvm-src/projects/test-suite/Ex
 ```
 - ```make TEST=pre```
 
-_Note: for CFP2006, use the same above methods._
+**Note: for CFP2006, use the same above methods.**
 
 ## Links ##
 - For more about various LLVM tools: http://llvm.org/docs/CommandGuide/index.html
