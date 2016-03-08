@@ -62,19 +62,18 @@ make ENABLE_OPTIMIZED=1 install
 
 ##Build  test-suite
 
-http://llvm.org/docs/TestSuiteMakefileGuide.html
-
+- Steps
+```
 cd llvm-src/projects
 svn co http://llvm.org/svn/llvm-project/test-suite/trunk test-suite
 ../llvm-src/configure CC=/software/gcc-4.8.2/bin/gcc CXX=/software/gcc-4.8.2/bin/g++ 
 --with-gcc-toolchain=/software/gcc-4.8.2 --with-extra-ld-options=-Wl,-rpath,/software/gcc-4.8.2/lib64 
 --enable-jit --enable-targets=all --enable-optimized --enable-assertions 
 --with-llvmgccdir=/home/sdasgup3/llvm/llvm-gcc4.2-2.9-x86_64-linux/
+```
 
-In llvm-src/projects/test-suite/Makefile.rules
-
-change 
-[
+- In llvm-src/projects/test-suite/Makefile.rules, change
+```
 # Default optimization level:
 OPTFLAGS := -O3
 
@@ -95,22 +94,23 @@ to
 #ifeq ($(ENABLE_PROFILING),1)
 ENABLE_OPTIMIZED = 1
 #endif
-]
+```
 
-Then in lllvm-src/projects/test-suite/MultiSource
-put TEST.pre.Makefile // Code give in Repo
+- Then in llvm-src/projects/test-suite/MultiSource, put TEST.pre.Makefile // Code give in Repo
 
-now go to llvm-build/projects/test-suite
-and fire make TEST=pre [clean] // to run SingleSource and Multisourse together
-or cd SingleSource;  make TEST=pre [clean] // to run SingleSource Only
+- Go to llvm-build/projects/test-suite
+```
+make TEST=pre [clean] // to run SingleSource and Multisourse together or 
+cd SingleSource;  make TEST=pre [clean] // to run SingleSource Only
+```
 
-The result is that in llvm-build/projects/test-suite/*...*/Output/*.linked.rbc will be created which is the 
-clang compiled linked bc of the source code.
-Note that: if you put other instrcutions in  TEST.pre.Makefile then those will also be executed. 
-For exampe if you intend to run opt pass on the linked.rbc.
+- The result is that in llvm-build/projects/test-suite/*...*/Output/*.linked.rbc will be created which is the  clang compiled linked bc of the source code.
+_Note that: if you put other instrcutions in  TEST.pre.Makefile then those will also be executed. For exampe if you intend to run opt pass on the linked.rbc._
 
 ##Ruunig spec2006
 
+- Steps
+```
 cp -rf llvm-src/projects/test-suite/External/SPEC/CINT2006/*  llvm-src/projects/test-suite/External/SPEC/CINT2006/ ; to copy the dir structure
 cd llvm-src/projects/test-suite/External/SPEC/CINT2006
 ls |& tee log // will put all the 12 spec dir in log file ; do log and remove Makefile
@@ -118,21 +118,19 @@ foreach file (`cat log`)
   cp -rf /home/sdasgup3/speccpu2006/benchspec/CPU2006/$file/* $file/ 
 end
 cd llvm-build/projects/test-suite/External/SPEC/CINT2006
-
-edit the following in */Makefile
-[
-
+``
+- edit the following in */Makefile
+```
 LEVEL = ../../../..
 
 to 
 
 LEVEL = ../../../..
 SPEC_BENCH_DIR = /home/sdasgup3/llvm/llvm-llvmpa/llvm-src/projects/test-suite/External/SPEC/CINT2006/<testcase name>
-]
+```
+- ```make TEST=pre```
 
-make TEST=pre
-
-Note: for CFP2006, use the same above methods.
+_Note: for CFP2006, use the same above methods._
 
 ## Links ##
 - For more about various LLVM tools: http://llvm.org/docs/CommandGuide/index.html
@@ -142,3 +140,4 @@ Note: for CFP2006, use the same above methods.
 - Using cmake to build llvm:  http://llvm.org/docs/CMake.html#embedding-llvm-in-your-project
 - Run an LLVM Pass Automatically with Clang: http://adriansampson.net/blog/clangpass.html
 - LLVM for Grad Students: http://adriansampson.net/blog/llvm.html
+- Build testsuite: http://llvm.org/docs/TestSuiteMakefileGuide.html
