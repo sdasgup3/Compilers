@@ -24,6 +24,7 @@ $ make ENABLE_OPTIMIZED=1
 
 
 ##Building LLVM
+### Using makefile system
 - Prechecks
 ```
 module load gcc
@@ -59,6 +60,8 @@ make ENABLE_OPTIMIZED=1 -j 2
 make ENABLE_OPTIMIZED=1 check-all
 make ENABLE_OPTIMIZED=1 install
 ```
+### Build using cmake
+- [Example Script](https://github.com/sdasgup3/Compilers/blob/master/LLVM/BuildInfra/config-llvm-cmake.sh)
 
 ##Build  test-suite
 
