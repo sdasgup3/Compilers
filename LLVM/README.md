@@ -1,4 +1,4 @@
-##Command Usage
+##command-usage
 - C program to LLVM code  (.ll) using clang
 `$ clang -S -emit-llvm myfile.c -o myfile.ll`
 
@@ -63,8 +63,16 @@ make ENABLE_OPTIMIZED=1 install
 ### Build using cmake
 - [Example Script](https://github.com/sdasgup3/Compilers/blob/master/LLVM/BuildInfra/config-llvm-cmake.sh)
 
-##Build  test-suite
-
+##Build-test-suite
+- Outside llvm build tree
+```
+tar -xvf testsuite.3.5.0.src.tar.xz
+mkdir testsuite.3.5.0.obj
+cd !$
+../test-suite.3.5.0.src/configure --with-llvmsrc=<> --with-llvmobj=<> -disable-optimized --enable-assertions
+make
+```
+- Inside llvm build tree 
 - Steps
 ```
 cd llvm-src/projects
