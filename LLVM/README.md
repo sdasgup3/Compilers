@@ -90,7 +90,7 @@ git pull --rebase
 popd
 
 make -j 16
-make install
+make install -j 16
 ```
 
 ##Build-test-suite
