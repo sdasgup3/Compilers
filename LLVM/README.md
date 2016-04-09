@@ -63,6 +63,36 @@ make ENABLE_OPTIMIZED=1 install
 ### Build using cmake
 - [Example Script](https://github.com/sdasgup3/Compilers/blob/master/LLVM/BuildInfra/config-llvm-cmake.sh)
 
+### Build from current git version
+```
+% git clone http://llvm.org/git/llvm.git
+% cd llvm/tools
+% git clone http://llvm.org/git/clang.git
+% cd llvm/projects
+% git clone http://llvm.org/git/compiler-rt.git
+% cd llvm/projects
+% git clone http://llvm.org/git/test-suite.git
+%cmake -G "Unix Makefiles" -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DLLVM_ENABLE_ASSERTIONS=ON  -DCMAKE_BUILD_TYPE="Release" -DCMAKE_INSTALL_PREFIX=/home/sdasgup3/Install/llvm.install/ -DLLVM_TARGETS_TO_BUILD="all" ../llvm/
+%make -j 16 ; make install
+
+/* To update the repo
+** Assumption that cwd=llvm.obj
+*/
+pushd .
+cd /home/sdasgup3/Install/llvm
+git pull --rebase
+cd tools/clang/
+git pull --rebase
+cd ../../projects/compiler-rt/
+git pull --rebase
+cd ../../projects/test-suite/
+git pull --rebase
+popd
+
+make -j 16
+make install
+```
+
 ##Build-test-suite
 - Outside llvm build tree
 ```
