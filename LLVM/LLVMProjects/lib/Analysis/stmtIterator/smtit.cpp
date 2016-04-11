@@ -15,12 +15,12 @@
 #define LLVM_VERSION_CODE LLVM_VERSION(LLVM_VERSION_MAJOR,LLVM_VERSION_MINOR) 
 
 
+#define DEBUG_TYPE "smtit"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Support/system_error.h"
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetLibraryInfo.h"
@@ -31,6 +31,7 @@
 #else
   #include "llvm/Analysis/Dominators.h"
   #include "llvm/Support/InstIterator.h"
+  #include "llvm/Support/system_error.h"
 #endif  
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Constants.h"
@@ -89,10 +90,10 @@ bool smtit::runOnModule(Module &M)
 
   bool Changed = false;
 
-  //performTest1();
+  performTest1();
   //performTest2();
-  llvm::errs() << "Performing  ITREAD\n";
-  performTest3( M);
+  //llvm::errs() << "Performing  ITREAD\n";
+  //performTest3( M);
 
   return Changed;
 }
@@ -116,6 +117,8 @@ void smtit::performTest3(Module &mainModule) {
   */
 
   //assert(mainModule);
+  //fixit
+  /*
   llvm::errs() << mainModule ;
 
   PassManager passes;
@@ -126,7 +129,7 @@ void smtit::performTest3(Module &mainModule) {
 
   if (DT->getRoot())
     llvm::errs() << DT->getRoot();
-
+*/
   
 }
 
@@ -203,16 +206,35 @@ void smtit::performTest1()
       for (BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I) {
         Instruction* BBI = I;
         if (StoreInst *SI = dyn_cast<StoreInst>(BBI)) {
-          DEBUG(errs() << "\tStore Instruction: " << *BBI << " \n");
-          DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(SI->getType()) << " \n");
+          //DEBUG(errs() << "\tStore Instruction: " << *BBI << " \n");
+          //DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(SI->getType()) << " \n");
           //Instruction* V = cast<Instruction>(SI->getOperand(1));
           //DEBUG(errs() << "\tOperand : " << *V << " \n");
           //DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(V->getType()) << " \n");
         } else {
-          DEBUG(errs() << "\tInstruction: " << *BBI << " \n");
-          DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(BBI->getType()) << " \n");
+          //DEBUG(errs() << "\tInstruction: " << *BBI << " \n");
+          //DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(BBI->getType()) << " \n");
         }
+
+        
+
+        //For def-use chains: All the uses of the definition
+        DEBUG(errs()<<  *BBI << "\n");
+
+        for (User *U : BBI->users()) {
+          if (Instruction *Inst = dyn_cast<Instruction>(U)) {
+            DEBUG(errs()<< " " <<  *Inst << "\n");
+          }
+        }
+
+        for (Value::user_iterator i = BBI->user_begin(), e = BBI->user_end(); 
+              i != e; ++i) {
+          if (Instruction *user_inst = dyn_cast<Instruction>(*i)) {
+            DEBUG(errs()<< " " << *user_inst << "\n");
+          }
+        } 
       }
+
     }
   }
 }

@@ -6,7 +6,7 @@
 #include "llvm/Support/DataTypes.h"
 */
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/DebugInfo.h"
+#include "llvm/IR/DebugInfo.h"
 
 /* Header file global to this project */
 #include "readMetadata.h"
