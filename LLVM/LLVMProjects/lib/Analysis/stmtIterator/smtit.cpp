@@ -220,7 +220,7 @@ void smtit::performTest1()
 
         //For def-use chains: All the uses of the definition
         DEBUG(errs()<<  *BBI << "\n");
-
+        /*
         for (User *U : BBI->users()) {
           if (Instruction *Inst = dyn_cast<Instruction>(U)) {
             DEBUG(errs()<< " " <<  *Inst << "\n");
@@ -233,6 +233,7 @@ void smtit::performTest1()
             DEBUG(errs()<< " " << *user_inst << "\n");
           }
         } 
+        */
       }
 
     }
