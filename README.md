@@ -4,12 +4,13 @@ My projects involving compiler frameworks like GCC and LLVM.
 - ```echo | gcc -E -dM -``` gives the preprocessor macros defined by the compiler.   ```__x86_64__``` is one of those. Which is set/reset while compiling using ```gcc -m64 / gcc -m32```
 
 #### What's wrong with casting malloc's return value?
+Suppose that you call malloc but forget to #include <stdlib.h>. The compiler is likely to assume that malloc is a function returning int, which is of course incorrect, and will lead to trouble. Now, if your call to malloc is of the form
+```
+char *p = malloc(10);
+```
+the compiler will notice that you're seemingly assigning an integer to a pointer, and will likely emit a warning of the form _"assignment of pointer from integer lacks a cast"_, which will alert you to the problem. (The problem is of course that you forgot to ```#include <stdlib.h>```, not that you forgot to use a cast.) If, on the other hand, your call to malloc includes a cast:
 
-A: Suppose that you call malloc but forget to #include <stdlib.h>. The compiler is likely to assume that malloc is a function returning int, which is of course incorrect, and will lead to trouble. Now, if your call to malloc is of the form
-
-	```char *p = malloc(10);```
-the compiler will notice that you're seemingly assigning an integer to a pointer, and will likely emit a warning of the form ***assignment of pointer from integer lacks a cast'' (see question 7.6)***, which will alert you to the problem. (The problem is of course that you forgot to ```#include <stdlib.h>```, not that you forgot to use a cast.) If, on the other hand, your call to malloc includes a cast:
-	```
+```
 	char *p = (char *)malloc(10);
 ```
 
