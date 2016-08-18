@@ -223,4 +223,7 @@ gcc Output/make_dparser.llc.s -o Output/make_dparser.llc  -lm   -m64 -fomit-fram
 - Run an LLVM Pass Automatically with Clang: http://adriansampson.net/blog/clangpass.html
 - LLVM for Grad Students: http://adriansampson.net/blog/llvm.html
 - Build testsuite: http://llvm.org/docs/TestSuiteMakefileGuide.html
+- Creating outof the tree pss using cmake
+  - https://github.com/sdasgup3/llvm-dev-meeting-tutorial-2015
+  - http://www.llvm.org/devmtg/2016-03/Tutorials/Tutorial.pdf
 
