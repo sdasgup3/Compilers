@@ -1,0 +1,4 @@
+add_subdirectory(stmtIterator)
+add_subdirectory(readMetadata)
+add_subdirectory(opModifier)
+add_subdirectory(gptrIndexSize)	
