@@ -5,35 +5,35 @@
 /* LLVM Header File
 #include "llvm/Support/DataTypes.h"
 */
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/DebugInfo.h"
+#include "llvm/Support/raw_ostream.h"
 
 /* Header file global to this project */
 #include "readMetadata.h"
 
-
-char  readMetadata::ID = 0;
+char readMetadata::ID = 0;
 bool readMetadata::runOnModule(Module &M) {
 
   Module::const_iterator i = M.begin();
   Module::const_iterator e = M.end();
 
-  for(;i != e; i++) {
+  for (; i != e; i++) {
     const Function &F = *i;
     string name = F.getName();
-    errs() << "Function Processing : "<< name << "\n";
+    errs() << "Function Processing : " << name << "\n";
 
-    for(const BasicBlock &B : F) {
-      for(const Instruction &I : B) {
+    for (const BasicBlock &B : F) {
+      for (const Instruction &I : B) {
 
         unsigned Line, Col;
-        if (I.hasMetadata()) { 
+        if (I.hasMetadata()) {
           const DebugLoc &Loc = I.getDebugLoc();
           Line = Loc.getLine();
           Col = Loc.getCol();
-          errs() << "\t"<< I << " : " << "\t\t" << Line << " " << Col << "\n";
+          errs() << "\t" << I << " : "
+                 << "\t\t" << Line << " " << Col << "\n";
         } else {
-          errs() << "\t"<< I << " : " << -1 << " " << -1 << "\n";
+          errs() << "\t" << I << " : " << -1 << " " << -1 << "\n";
         }
       }
     }
@@ -46,4 +46,5 @@ void readMetadata::getAnalysisUsage(AnalysisUsage &AU) const {
   AU.setPreservesAll();
 }
 
-static RegisterPass<readMetadata> RM("readmeta", "Reading the Debug Metadata information", true, true);
+static RegisterPass<readMetadata>
+    RM("readmeta", "Reading the Debug Metadata information", true, true);

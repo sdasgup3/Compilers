@@ -13,14 +13,14 @@ set(CLANGFORMAT_COMMAND clang-format -sort-includes -style=llvm)
 # cmake for loop, let's do this
 set(i 0)
 foreach(file IN LISTS files)
-  add_custom_command(OUTPUT allvm-check-format${i}
+  add_custom_command(OUTPUT llvm-check-format${i}
     COMMAND ${CLANGFORMAT_COMMAND} ${file} | diff -u ${file} -
     VERBATIM
     COMMENT "Checking format of ${file}..."
   )
   list(APPEND check_format_depends "llvm-check-format${i}")
 
-  add_custom_command(OUTPUT allvm-update-format${i}
+  add_custom_command(OUTPUT llvm-update-format${i}
     COMMAND ${CLANGFORMAT_COMMAND} -i ${file}
     VERBATIM
     COMMENT "Updating format of ${file}..."

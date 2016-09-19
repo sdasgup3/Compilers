@@ -12,32 +12,31 @@
 //#define LLVM_VERSION_MAJOR 3
 //#define LLVM_VERSION_MINOR 4
 //#define LLVM_VERSION(major,minor) (((major) << 2) | (minor))
-//#define LLVM_VERSION_CODE LLVM_VERSION(LLVM_VERSION_MAJOR,LLVM_VERSION_MINOR) 
-
+//#define LLVM_VERSION_CODE LLVM_VERSION(LLVM_VERSION_MAJOR,LLVM_VERSION_MINOR)
 
 #define DEBUG_TYPE "smtit"
-#include "llvm/Transforms/Scalar.h"
+#include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Transforms/Scalar.h"
 //#include "llvm/PassManager.h"
 //#include "llvm/Target/TargetLibraryInfo.h"
 
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/PostOrderIterator.h"
+#include "llvm/ADT/SmallBitVector.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/Statistic.h"
+#include "llvm/Analysis/LoopInfo.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Constants.h"
 #include "llvm/IR/LLVMContext.h"
-#include "llvm/Analysis/LoopInfo.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/Debug.h"
-#include "llvm/ADT/Statistic.h"
-#include "llvm/ADT/PostOrderIterator.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallBitVector.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 using namespace llvm;
 
@@ -49,40 +48,39 @@ struct smtit : public ModulePass {
   void performTest1();
   void performTest2();
   void performTest3(Module &M);
-  bool isLLVMPAPtrTy(llvm::Type*);
+  bool isLLVMPAPtrTy(llvm::Type *);
 
   virtual void getAnalysisUsage(AnalysisUsage &AU) const {
     AU.setPreservesCFG();
   }
-  private:
-    Module* Mod;
-   // const llvm::DataLayout *DL;
+
+private:
+  Module *Mod;
+  // const llvm::DataLayout *DL;
 };
 
 char smtit::ID = 0;
-static RegisterPass<smtit> X("smtit",
-"DSAND Testing Code ",
-false /* does not modify the CFG */,
-false /* transformation, not just analysis */);
+static RegisterPass<smtit> X("smtit", "DSAND Testing Code ",
+                             false /* does not modify the CFG */,
+                             false /* transformation, not just analysis */);
 
 /*******************************************************************
 * Function : runOnModule
 * Purpose : Entry point for Test
 ********************************************************************/
-SwitchInst* GSI ; 
+SwitchInst *GSI;
 
-bool smtit::runOnModule(Module &M)
-{
+bool smtit::runOnModule(Module &M) {
   Mod = &M;
-  //DL = Mod->getDataLayout();
-  //DEBUG(errs() << "Data Layout String\n" << Mod->getDataLayoutStr() << "\n");
+  // DL = Mod->getDataLayout();
+  // DEBUG(errs() << "Data Layout String\n" << Mod->getDataLayoutStr() << "\n");
 
   bool Changed = false;
 
   performTest1();
-  //performTest2();
-  //llvm::errs() << "Performing  ITREAD\n";
-  //performTest3( M);
+  // performTest2();
+  // llvm::errs() << "Performing  ITREAD\n";
+  // performTest3( M);
 
   return Changed;
 }
@@ -94,9 +92,11 @@ void smtit::performTest3(Module &mainModule) {
   std::string ErrorMsg;
   error_code ec=MemoryBuffer::getFileOrSTDIN(file, BufferPtr);
   if (ec) {
-    llvm::errs() << "error loading program " << file << " " << ec.message().c_str();
+    llvm::errs() << "error loading program " << file << " " <<
+  ec.message().c_str();
   }
-  Module* mainModule = getLazyBitcodeModule(BufferPtr.get(), getGlobalContext(), &ErrorMsg);
+  Module* mainModule = getLazyBitcodeModule(BufferPtr.get(), getGlobalContext(),
+  &ErrorMsg);
   if (mainModule) {
     if (mainModule->MaterializeAllPermanently(&ErrorMsg)) {
       delete mainModule;
@@ -105,8 +105,8 @@ void smtit::performTest3(Module &mainModule) {
   }
   */
 
-  //assert(mainModule);
-  //fixit
+  // assert(mainModule);
+  // fixit
   /*
   llvm::errs() << mainModule ;
 
@@ -119,96 +119,88 @@ void smtit::performTest3(Module &mainModule) {
   if (DT->getRoot())
     llvm::errs() << DT->getRoot();
 */
-  
 }
 
+void smtit::performTest2() {
+  for (Module::iterator FuncI = Mod->begin(), FuncE = Mod->end();
+       FuncI != FuncE; ++FuncI) {
+    Function *Func = &*FuncI;
 
-void smtit::performTest2()
-{
-  for (Module::iterator FuncI = Mod->begin(), FuncE = Mod->end(); FuncI != FuncE; ++FuncI) {
-    Function* Func = &*FuncI;
-  
-    for (Function::iterator BBI = Func->begin(), BBE = Func->end(); BBI != BBE; ++BBI) {
-      BasicBlock* BB = &*BBI;
-      for (BasicBlock::iterator II = BB->begin(), EI = BB->end(); II != EI; ++II) {
-        Instruction* I = &*II;
-        if(I->getOpcode() == Instruction::Call) { 
-          DEBUG(errs() << "\n\n\nThis is Call Instrcution  \n" << *I<< "\n" );
-          CallInst* CallI = cast<CallInst>(I);
+    for (Function::iterator BBI = Func->begin(), BBE = Func->end(); BBI != BBE;
+         ++BBI) {
+      BasicBlock *BB = &*BBI;
+      for (BasicBlock::iterator II = BB->begin(), EI = BB->end(); II != EI;
+           ++II) {
+        Instruction *I = &*II;
+        if (I->getOpcode() == Instruction::Call) {
+          DEBUG(errs() << "\n\n\nThis is Call Instrcution  \n" << *I << "\n");
+          CallInst *CallI = cast<CallInst>(I);
           Function *fp = CallI->getCalledFunction();
           DEBUG(errs() << "Called Function " << fp->getName() << "\n");
-          DEBUG(errs() << "Used in\n" );
+          DEBUG(errs() << "Used in\n");
 
-          for (Value::use_iterator i = I->use_begin(), e = I->use_end(); i != e; ++i) {
-            Instruction* UseI = dyn_cast<Instruction>(*i);
-            if(isa<SwitchInst>(UseI)) {
+          for (Value::use_iterator i = I->use_begin(), e = I->use_end(); i != e;
+               ++i) {
+            Instruction *UseI = dyn_cast<Instruction>(*i);
+            if (isa<SwitchInst>(UseI)) {
               SwitchInst *SI = cast<SwitchInst>(UseI);
-              if(fp->getName() == "F") {
+              if (fp->getName() == "F") {
                 GSI = SI;
-                DEBUG(errs() <<  *UseI<< "\n" );
-              } else if(fp->getName() == "G") {
-                if(SI != GSI) {
-                  DEBUG(errs() <<  "Different Swict" << "\n" );
+                DEBUG(errs() << *UseI << "\n");
+              } else if (fp->getName() == "G") {
+                if (SI != GSI) {
+                  DEBUG(errs() << "Different Swict"
+                               << "\n");
                 }
               }
             }
           }
-
         }
       }
     }
   }
 }
 
-//for (Value::use_iterator i = F->use_begin(), e = F->use_end(); i != e; ++i)
+// for (Value::use_iterator i = F->use_begin(), e = F->use_end(); i != e; ++i)
 //  if (Instruction *Inst = dyn_cast<Instruction>(*i)) {
 //    errs() << "F is used in instruction:\n";
 //    errs() << *Inst << "\n";
 //  }
 //
 
-
-
-
-
-
-
-
-
-
 bool smtit::isLLVMPAPtrTy(Type *Ty) {
-  //Type *IntPtrTy = DL->getIntPtrType(Ty->getContext());
-  //DEBUG(errs() << "\tType: " << *IntPtrTy << " Arg Type"<< *Ty  <<" \n");
-  //return Ty->isPointerTy() || Ty == IntPtrTy;
+  // Type *IntPtrTy = DL->getIntPtrType(Ty->getContext());
+  // DEBUG(errs() << "\tType: " << *IntPtrTy << " Arg Type"<< *Ty  <<" \n");
+  // return Ty->isPointerTy() || Ty == IntPtrTy;
   return 0;
 }
 
-
-void smtit::performTest1()
-{
+void smtit::performTest1() {
 
   for (Module::iterator FI = Mod->begin(), FE = Mod->end(); FI != FE; ++FI) {
-    Function* Func = &*FI;
-    //DEBUG(errs() << *Func << "\n");
-    for (Function::iterator BI = Func->begin(), BE = Func->end(); BI != BE; ++BI) {
-      BasicBlock* BB = &*BI;
+    Function *Func = &*FI;
+    // DEBUG(errs() << *Func << "\n");
+    for (Function::iterator BI = Func->begin(), BE = Func->end(); BI != BE;
+         ++BI) {
+      BasicBlock *BB = &*BI;
       for (BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I) {
-        Instruction* BBI = &*I;
+        Instruction *BBI = &*I;
         if (StoreInst *SI = dyn_cast<StoreInst>(BBI)) {
-          //DEBUG(errs() << "\tStore Instruction: " << *BBI << " \n");
-          //DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(SI->getType()) << " \n");
-          //Instruction* V = cast<Instruction>(SI->getOperand(1));
-          //DEBUG(errs() << "\tOperand : " << *V << " \n");
-          //DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(V->getType()) << " \n");
+          // DEBUG(errs() << "\tStore Instruction: " << *BBI << " \n");
+          // DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(SI->getType())
+          // << " \n");
+          // Instruction* V = cast<Instruction>(SI->getOperand(1));
+          // DEBUG(errs() << "\tOperand : " << *V << " \n");
+          // DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(V->getType())
+          // << " \n");
         } else {
-          //DEBUG(errs() << "\tInstruction: " << *BBI << " \n");
-          //DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(BBI->getType()) << " \n");
+          // DEBUG(errs() << "\tInstruction: " << *BBI << " \n");
+          // DEBUG(errs() << "\t\tPointerType: " <<
+          // isLLVMPAPtrTy(BBI->getType()) << " \n");
         }
 
-        
-
-        //For def-use chains: All the uses of the definition
-        DEBUG(errs()<<  *BBI << "\n");
+        // For def-use chains: All the uses of the definition
+        DEBUG(errs() << *BBI << "\n");
         /*
         for (User *U : BBI->users()) {
           if (Instruction *Inst = dyn_cast<Instruction>(U)) {
@@ -216,15 +208,14 @@ void smtit::performTest1()
           }
         }
 
-        for (Value::user_iterator i = BBI->user_begin(), e = BBI->user_end(); 
+        for (Value::user_iterator i = BBI->user_begin(), e = BBI->user_end();
               i != e; ++i) {
           if (Instruction *user_inst = dyn_cast<Instruction>(*i)) {
             DEBUG(errs()<< " " << *user_inst << "\n");
           }
-        } 
+        }
         */
       }
-
     }
   }
 }

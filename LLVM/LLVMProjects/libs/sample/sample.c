@@ -17,9 +17,4 @@
 /* Header file global to this project */
 #include "sample.h"
 
-int
-compute_sample (int a)
-{
-  return a;
-}
-
+int compute_sample(int a) { return a; }
