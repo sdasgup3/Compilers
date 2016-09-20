@@ -1,1 +1,1 @@
-add_llvm_loadable_module(LLVMsample sample.c)
+add_llvm_library(sample sample.c)

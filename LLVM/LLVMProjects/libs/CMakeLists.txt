@@ -1,3 +1,3 @@
-add_subdirectory(analysis)
-add_subdirectory(transform)
+add_subdirectory(Analysis)
+add_subdirectory(Transform)
 add_subdirectory(sample)
