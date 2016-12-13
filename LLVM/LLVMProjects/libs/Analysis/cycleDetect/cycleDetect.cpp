@@ -44,7 +44,7 @@ struct CycleDetectPass : public ModulePass {
     return false;
   }
 
-  virtual const char *getPassName() const {
+  virtual StringRef getPassName() const {
     return "CallGraph cycle detection";
   }
 

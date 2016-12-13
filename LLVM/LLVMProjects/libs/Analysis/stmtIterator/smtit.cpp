@@ -15,7 +15,7 @@
 //#define LLVM_VERSION_CODE LLVM_VERSION(LLVM_VERSION_MAJOR,LLVM_VERSION_MINOR)
 
 #define DEBUG_TYPE "smtit"
-#include "llvm/Bitcode/ReaderWriter.h"
+//#include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
@@ -48,6 +48,7 @@ struct smtit : public ModulePass {
   void performTest1();
   void performTest2();
   void performTest3(Module &M);
+  void defuse();
   bool isLLVMPAPtrTy(llvm::Type *);
 
   virtual void getAnalysisUsage(AnalysisUsage &AU) const {
@@ -81,8 +82,56 @@ bool smtit::runOnModule(Module &M) {
   // performTest2();
   // llvm::errs() << "Performing  ITREAD\n";
   // performTest3( M);
+  //defuse();
+
 
   return Changed;
+}
+
+
+void defuse_helper(Instruction *W, int level, int tab) {
+  if(0 == level) {
+    return ;
+  }
+
+  for(User *U : W->users()) {
+    if (Instruction *I = dyn_cast<Instruction>(U)) {
+      for(int k = 0 ; k < tab; k++) {
+        errs() << "\t";
+      }
+      errs() << *I << "\n"; 
+      defuse_helper(I, level-1, tab+1);
+    }
+  }
+}
+
+void smtit::defuse() {
+
+  std::vector<LoadInst*> worklist;
+  for (Module::iterator FuncI = Mod->begin(), FuncE = Mod->end();
+       FuncI != FuncE; ++FuncI) {
+    Function *Func = &*FuncI;
+    for (Function::iterator BBI = Func->begin(), BBE = Func->end(); BBI != BBE;
+         ++BBI) {
+      BasicBlock *BB = &*BBI;
+      for (BasicBlock::iterator II = BB->begin(), EI = BB->end(); II != EI;
+           ++II) {
+        Instruction *I = &*II;
+        if(LoadInst* li =  dyn_cast<LoadInst>(I)) {
+          Value *ptr_operand = li->getPointerOperand();
+          if (ptr_operand->getName().equals("RSP_val")) {
+            worklist.push_back(li);
+          }
+        }
+      }
+    }
+  }
+
+  for(auto li: worklist) {
+    errs() << "========= Def Use List =========\n";
+    errs() << *li << "\n";
+    defuse_helper(li, 5, 1);
+  }
 }
 
 void smtit::performTest3(Module &mainModule) {
@@ -185,7 +234,12 @@ void smtit::performTest1() {
       BasicBlock *BB = &*BI;
       for (BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E; ++I) {
         Instruction *BBI = &*I;
-        if (StoreInst *SI = dyn_cast<StoreInst>(BBI)) {
+        //if (true == isa<StoreInst>(BBI)) {
+        if (true == isa<LoadInst>(BBI)) {
+          LoadInst *li  = dyn_cast<LoadInst>(BBI);
+          Value *ptrOp = li->getPointerOperand();
+          DEBUG(errs() << *li << "\t Result Name: " << li->getName() << "\t Pointer Name: " << ptrOp->getName() << "\n");
+
           // DEBUG(errs() << "\tStore Instruction: " << *BBI << " \n");
           // DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(SI->getType())
           // << " \n");
@@ -193,14 +247,16 @@ void smtit::performTest1() {
           // DEBUG(errs() << "\tOperand : " << *V << " \n");
           // DEBUG(errs() << "\t\tPointerType: " << isLLVMPAPtrTy(V->getType())
           // << " \n");
-        } else {
+        } else if(true == isa<GetElementPtrInst>(BBI)) {
+          GetElementPtrInst *gep  = dyn_cast<GetElementPtrInst>(BBI);
+          DEBUG(errs() << *gep << "\t Result Name: " << gep->getName() << "\n");
           // DEBUG(errs() << "\tInstruction: " << *BBI << " \n");
           // DEBUG(errs() << "\t\tPointerType: " <<
           // isLLVMPAPtrTy(BBI->getType()) << " \n");
         }
 
         // For def-use chains: All the uses of the definition
-        DEBUG(errs() << *BBI << "\n");
+        //DEBUG(errs() << *BBI << "\n");
         /*
         for (User *U : BBI->users()) {
           if (Instruction *Inst = dyn_cast<Instruction>(U)) {
