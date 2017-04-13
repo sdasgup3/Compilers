@@ -11,6 +11,8 @@
 #include "llvm/DebugInfo/DWARF/DWARFContext.h"
 #include "llvm/DebugInfo/DWARF/DWARFDie.h"
 #include "llvm/DebugInfo/DWARF/DWARFCompileUnit.h"
+#include "llvm/Support/Format.h"
+#include "llvm/DebugInfo/DWARF/DWARFFormValue.h"
 
 #include <algorithm>
 #include <list>
@@ -40,16 +42,52 @@ public:
       return;
     }
         
-    //die.dump(outs(), 10);
-    //  outs() << "=============================== \n\n";
     for (auto child = die.getFirstChild(); child; child = child.getSibling()) {
+      //Go over all the top level sub_programs
       if(child.isSubprogramDIE() || child.isSubroutineDIE()) {
-        outs()<< TagString(child.getTag()) 
-          << "\n\t" << child.getSubroutineName(DINameKind::ShortName);
+        getInfo(child);
+
+        //Look for variables among children of sub_program die
+        if(!child.hasChildren()) {
+          continue;
+        }
+        findVariables(child);
       }
      // outs() << "=============================== \n\n";
     }
   }
+
+  void findVariables(const DWARFDie &die) {
+    
+    for (auto child = die.getFirstChild(); child; child = child.getSibling()) {
+      switch(child.getTag()) {
+        case dwarf::DW_TAG_variable:
+        case dwarf::DW_TAG_formal_parameter:
+        case dwarf::DW_TAG_constant:
+          handleVariable(child);
+          break;
+        default:
+          if (child.hasChildren())
+            findVariables(child);
+      }
+    }
+  }
+
+  void handleVariable(const DWARFDie &die) {
+    getInfo(die);
+  }
+
+  void getInfo(const DWARFDie &die) {
+    auto tagString = TagString(die.getTag());
+    if (tagString.empty())
+      outs() << format("DW_TAG_Unknown_%x", die.getTag());
+    auto formVal = die.find(dwarf::DW_AT_name);
+    formVal->dump(outs());
+
+    //    outs()<< tagString
+    //      << "\n\t" << child.getSubroutineName(DINameKind::ShortName);
+  }
+
 
 private:
 };
