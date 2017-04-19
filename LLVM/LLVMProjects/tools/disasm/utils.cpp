@@ -158,6 +158,28 @@ std::shared_ptr<TypeInfo> DwarfVariableFinder::makeType(const DWARFDie &die) {
                                   return getType(die.getAttributeValueAsReferencedDie(dwarf::DW_AT_type));
                                 }
 
+    case dwarf::DW_TAG_structure_type:
+    case dwarf::DW_TAG_class_type:
+    case dwarf::DW_TAG_union_type: {
+                                     SS << "struct" << dwarf::toString(die.find(dwarf::DW_AT_name), "None");
+                                     auto structType = std::make_shared<TypeInfo>(SS.str(), size);
+
+                                     // Add subentries for various pieces of the struct.
+                                     for (auto childDie = die.getFirstChild(); childDie && childDie.getTag(); childDie = childDie.getSibling()) {
+                                       if (childDie.getTag() != dwarf::DW_TAG_inheritance &&
+                                           childDie.getTag() != dwarf::DW_TAG_member) {
+                                         continue;
+                                       }
+                                       uint64_t dataMemOffset = dwarf::toUnsigned(childDie.find(dwarf::DW_AT_data_member_location), ~0U);
+                                       structType->getFields().emplace_back(makeType(childDie), dataMemOffset);
+                                     }
+                                     return structType;
+                                   }
+
+    case dwarf::DW_TAG_inheritance:
+    case dwarf::DW_TAG_member: {
+                                 return getType(die.getAttributeValueAsReferencedDie(dwarf::DW_AT_type));
+                               }        
 
     default: {
                auto tagString = TagString(die.getTag());
@@ -179,7 +201,13 @@ void DwarfVariableFinder::dump() {
 }
 
 void TypeInfo::dump(raw_ostream &OS) {
-  OS << "Name: " << name << " Size: " << size << "\n";
+  OS << "Name: " << name << " Size: " << size << " ";
+  for(auto field : fields) {
+    OS << "\t";
+    field.type->dump(OS);
+    OS << "Member Offset: " << field.offset << "\n";
+  }
+  OS << "\n";
 }
 
 
