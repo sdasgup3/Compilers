@@ -1,1 +1,1 @@
-![Report](README.png)
+![Report](reports/README.png)
