@@ -1,1 +1,1 @@
-Some of my projects related with compilers.
+Some of my projects related to compilers.
