@@ -1,3 +1,4 @@
+Callstring based shape analysis. A callstring variant of [the paper](https://dl.acm.org/citation.cfm?id=237724).
 
 How to compile
 ---------------
