@@ -1,4 +1,6 @@
-## Links ##
+Some trivial llvm based tools/libs.
+
+## Links
 - For more about various LLVM tools: http://llvm.org/docs/CommandGuide/index.html
 - For moe information about creating a LLVM project :  http://llvm.org/releases/3.7.1/docs/Projects.html
 - Frequently asked Questions: http://llvm.org/releases/3.1/docs/FAQ.html
